@@ -1,0 +1,69 @@
+#!/usr/local/bin/zsh
+#
+search() {
+    if [[ ! -e ~/.launchdb ]]; then
+        gen-launch-db
+    fi
+
+    max=10
+    apps=("${(@f)$(cat ~/.launchdb)}")
+
+    len=${#apps[@]}
+
+    if [[ $len < $max ]]; then
+        rows=$len
+    else
+        rows=$max
+    fi
+
+    choices=("${(@f)}$(for el in $apps; do echo "$el"; done | sed 's/^.*\///g;s/\.app//g')}")
+    choice="$(for el in $apps; do echo "$el"; done | sed 's/^.*\///g;s/\.app//g' | choose -m -n $rows)"
+
+    if [[ "$choice" == "" ]]; then exit; fi
+
+    for el in $apps; do
+        if echo "$el" | egrep -qi "$choice"; then
+            open "$el"
+            exit
+        fi
+    done
+}
+
+if [[ ${#@} != 0 ]]; then
+    choice="$@"
+    if [[ ! -e ~/.launchdb ]]; then
+        gen-launch-db
+    fi
+    apps=("${(@f)$(cat ~/.launchdb)}")
+    for el in $apps; do
+        if echo "$el" | egrep -qi "$choice"; then
+            open "$el"
+            exit
+        fi
+    done
+    echo "Unable to find '$choice' in existing database. Reloading database..."
+    gen-launch-db
+    echo "Updated. Retrying..."
+    apps=("${(@f)$(cat ~/.launchdb)}")
+    for el in $apps; do
+        if echo "$el" | egrep -q "$choice"; then
+            open "$el"
+            exit
+        fi
+    done
+    echo "Unable to find '$choice'."
+else
+    search
+fi
+
+echo "Unable to find '$choice' in existing database. Reloading database..."
+gen-launch-db
+echo "Updated. Retrying..."
+apps=("${(@f)$(cat ~/.launchdb)}")
+for el in $apps; do
+    if echo "$el" | egrep -qi "$choice"; then
+        open "$el"
+        exit
+    fi
+done
+echo "Unable to find '$choice'."

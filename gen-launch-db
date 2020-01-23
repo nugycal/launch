@@ -1,0 +1,4 @@
+#!/usr/local/bin/zsh
+#
+fd --extension "app" . /Applications/ --max-depth=3 > ~/.launchdb
+fd --extension "app" . /Users/cavery/ --max-depth=2 >> ~/.launchdb
